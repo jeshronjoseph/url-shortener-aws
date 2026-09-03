@@ -38,7 +38,7 @@ iam/                IAM policy JSON for the Lambda execution role
    - `Links`: partition key `shortcode` (String)
    - `Clicks`: partition key `shortcode` (String), sort key `timestamp` (String)
 2. **IAM role** — create a Lambda execution role, attach `AWSLambdaBasicExecutionRole`, and add the inline policy from `iam/dynamodb-policy.json`.
-3. **Lambda functions** — create `shorten-url` and `redirect-url` (Node.js 20.x), using the role above, and paste in the code from `lambdas/shorten/index.mjs` and `lambdas/redirect/index.mjs`.
+3. **Lambda functions** — create `shorten-url` and `redirect-url` (Node.js 24.x), using the role above, and paste in the code from `lambdas/shorten/index.mjs` and `lambdas/redirect/index.mjs`.
 4. **API Gateway** — create an HTTP API with two routes:
    - `POST /shorten` → `shorten-url`
    - `GET /{shortcode}` → `redirect-url`
