@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>URL Shortener</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 600px; margin: 60px auto; padding: 0 20px; }
+  input { width: 70%; padding: 8px; font-size: 14px; }
+  button { padding: 8px 16px; font-size: 14px; cursor: pointer; }
+  table { width: 100%; border-collapse: collapse; margin-top: 30px; }
+  th, td { text-align: left; padding: 8px; border-bottom: 1px solid #ddd; font-size: 14px; }
+  #result { margin-top: 12px; font-size: 14px; }
+  a { word-break: break-all; }
+</style>
+</head>
+<body>
+<h1>URL Shortener</h1>
+<input id="longUrl" type="text" placeholder="Paste a long URL here">
+<button onclick="shorten()">Shorten</button>
+<div id="result"></div>
+
+<h2>Your links</h2>
+<table id="linksTable">
+  <thead><tr><th>Short URL</th><th>Original</th><th>Clicks</th></tr></thead>
+  <tbody></tbody>
+</table>
+
+<script>
+const API_URL = "API_GATEWAY_INVOKE_URL";  
+const links = JSON.parse(localStorage.getItem("myLinks") || "[]");
+
+function renderTable() {
+  const tbody = document.querySelector("#linksTable tbody");
+  tbody.innerHTML = "";
+  links.forEach(link => {
+    const row = document.createElement("tr");
+    const shortUrl = `${API_URL}/${link.shortcode}`;
+    row.innerHTML = `
+      <td><a href="${shortUrl}" target="_blank">${shortUrl}</a></td>
+      <td>${link.longUrl}</td>
+      <td>${link.clickCount ?? 0}</td>
+    `;
+    tbody.appendChild(row);
+  });
+}
+
+async function shorten() {
+  const longUrl = document.getElementById("longUrl").value.trim();
+  const resultDiv = document.getElementById("result");
+  if (!longUrl) return;
+
+  resultDiv.textContent = "Shortening...";
+  try {
+    const res = await fetch(`${API_URL}/shorten`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ longUrl })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Failed");
+
+    const shortUrl = `${API_URL}/${data.shortcode}`;
+    resultDiv.innerHTML = `Short URL: <a href="${shortUrl}" target="_blank">${shortUrl}</a>`;
+    links.unshift({ shortcode: data.shortcode, longUrl: data.longUrl, clickCount: 0 });
+    localStorage.setItem("myLinks", JSON.stringify(links));
+    renderTable();
+    document.getElementById("longUrl").value = "";
+  } catch (err) {
+    resultDiv.textContent = "Error: " + err.message;
+  }
+}
+
+renderTable();
+</script>
+</body>
+</html>
