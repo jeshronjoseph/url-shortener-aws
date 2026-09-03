@@ -1,6 +1,6 @@
 # URL Shortener — Serverless on AWS
 
-A personal URL shortener with click analytics, built entirely on AWS serverless services. Paste a long URL, get a short one back, and every click is logged with a timestamp.
+A personal URL shortener with click analytics, built entirely on AWS serverless services.
 
 ## Architecture
 
@@ -17,11 +17,11 @@ Browser → API Gateway (HTTP API)
 
 ## Tech stack
 
-- **AWS Lambda** (Node.js 20.x) — `shorten` and `redirect` functions
+- **AWS Lambda** (Node.js 24.x) — `shorten` and `redirect` functions
 - **API Gateway** (HTTP API) — routes `POST /shorten` and `GET /{shortcode}`
 - **DynamoDB** — two on-demand tables: `Links` (shortcode → longUrl) and `Clicks` (click log)
 - **S3** — static website hosting for the frontend
-- **IAM** — a scoped execution role granting Lambda only `GetItem`, `PutItem`, and `UpdateItem` on the two tables above
+- **IAM** — a scoped execution role granting Lambda only `GetItem`, `PutItem`, and `UpdateItem` on the two tables 
 
 ## Repo structure
 
@@ -45,7 +45,3 @@ iam/                IAM policy JSON for the Lambda execution role
    Enable CORS (`Access-Control-Allow-Origin: *`, methods `GET, POST, OPTIONS`, headers `Content-Type`).
 5. **Frontend** — in `frontend/index.html`, replace `API_GATEWAY_INVOKE_URL` with your API Gateway invoke URL, then upload the file to an S3 bucket with static website hosting enabled and a public-read bucket policy.
 
-## Notes
-
-- Click counts shown in the frontend table come from `localStorage` at creation time; the real, live count lives in DynamoDB. A `GET /links` endpoint could be added to sync these.
-- This is a personal/learning project — the CORS policy (`*`) and open bucket policy are fine for a low-traffic personal tool but should be tightened for production use.
