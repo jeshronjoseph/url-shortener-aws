@@ -68,7 +68,6 @@ export const handler = async (event) => {
           createdAt: new Date().toISOString(),
           clickCount: 0,
         },
-        // Ensures we never silently overwrite an existing shortcode
         ConditionExpression: "attribute_not_exists(shortcode)",
       })
     );
