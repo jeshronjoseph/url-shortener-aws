@@ -34,145 +34,62 @@
     transition: background 0.25s ease, color 0.25s ease;
     min-height: 100vh;
   }
-  .wrap {
-    max-width: 560px;
-    margin: 0 auto;
-    padding: 64px 24px 80px;
-  }
-  header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 48px;
-  }
-  h1 {
-    font-size: 20px;
-    font-weight: 600;
-    margin: 0;
-    letter-spacing: -0.01em;
-  }
-
-  /* toggle switch */
+  .wrap { max-width: 560px; margin: 0 auto; padding: 64px 24px 80px; }
+  header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 48px; }
+  h1 { font-size: 20px; font-weight: 600; margin: 0; letter-spacing: -0.01em; }
   .toggle {
-    position: relative;
-    width: 44px;
-    height: 24px;
-    border-radius: 999px;
-    background: var(--border);
-    border: none;
-    cursor: pointer;
-    padding: 0;
-    flex-shrink: 0;
+    position: relative; width: 44px; height: 24px; border-radius: 999px;
+    background: var(--border); border: none; cursor: pointer; padding: 0; flex-shrink: 0;
   }
   .toggle .knob {
-    position: absolute;
-    top: 3px;
-    left: 3px;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background: var(--surface);
-    box-shadow: var(--shadow);
+    position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%;
+    background: var(--surface); box-shadow: var(--shadow);
     transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   }
   html.dark .toggle .knob { transform: translateX(20px); }
-
-  form {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 12px;
-  }
+  form { display: flex; gap: 8px; margin-bottom: 12px; }
   input[type="text"] {
-    flex: 1;
-    padding: 12px 14px;
-    font-size: 14px;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    background: var(--surface);
-    color: var(--text);
-    outline: none;
+    flex: 1; padding: 12px 14px; font-size: 14px; border: 1px solid var(--border);
+    border-radius: 10px; background: var(--surface); color: var(--text); outline: none;
     transition: border-color 0.2s ease, background 0.25s ease;
   }
-  input[type="text"]:focus {
-    border-color: var(--accent);
-  }
+  input[type="text"]:focus { border-color: var(--accent); }
   button.submit {
-    padding: 12px 18px;
-    font-size: 14px;
-    font-weight: 500;
-    border: none;
-    border-radius: 10px;
-    background: var(--accent);
-    color: var(--accent-text);
-    cursor: pointer;
+    padding: 12px 18px; font-size: 14px; font-weight: 500; border: none; border-radius: 10px;
+    background: var(--accent); color: var(--accent-text); cursor: pointer;
     transition: opacity 0.15s ease, transform 0.1s ease;
   }
   button.submit:hover { opacity: 0.9; }
   button.submit:active { transform: scale(0.97); }
   button.submit:disabled { opacity: 0.5; cursor: default; }
-
-  .status {
-    font-size: 13px;
-    min-height: 18px;
-    margin-bottom: 8px;
-  }
+  .status { font-size: 13px; min-height: 18px; margin-bottom: 8px; }
   .status.error { color: #c0503f; }
   .status.ok { color: var(--text-muted); }
   .status a { color: var(--accent); }
-
   h2 {
-    font-size: 13px;
-    font-weight: 600;
-    text-transform: none;
-    color: var(--text-muted);
-    margin: 40px 0 12px;
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 13px; font-weight: 600; color: var(--text-muted); margin: 40px 0 12px;
   }
-
-  .empty {
-    font-size: 13px;
-    color: var(--text-muted);
-    padding: 20px 0;
-    border-top: 1px solid var(--border);
+  .refresh {
+    background: none; border: none; color: var(--text-muted); font-size: 12px;
+    cursor: pointer; padding: 0; text-decoration: underline;
   }
-
+  .refresh:hover { color: var(--accent); }
+  .empty { font-size: 13px; color: var(--text-muted); padding: 20px 0; border-top: 1px solid var(--border); }
   .link-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 12px 0;
-    border-top: 1px solid var(--border);
-    animation: rise 0.3s ease both;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 12px 0; border-top: 1px solid var(--border); animation: rise 0.3s ease both;
   }
-  @keyframes rise {
-    from { opacity: 0; transform: translateY(-4px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
+  @keyframes rise { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
   .link-row .info { min-width: 0; }
-  .link-row .short {
-    font-size: 14px;
-    color: var(--accent);
-    text-decoration: none;
-    font-weight: 500;
-  }
+  .link-row .short { font-size: 14px; color: var(--accent); text-decoration: none; font-weight: 500; }
   .link-row .short:hover { text-decoration: underline; }
   .link-row .orig {
-    font-size: 12px;
-    color: var(--text-muted);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 320px;
+    font-size: 12px; color: var(--text-muted); white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis; max-width: 320px;
   }
-  .link-row .clicks {
-    font-size: 12px;
-    color: var(--text-muted);
-    flex-shrink: 0;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    * { animation: none !important; transition: none !important; }
-  }
+  .link-row .clicks { font-size: 12px; color: var(--text-muted); flex-shrink: 0; }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
 </style>
 </head>
 <body>
@@ -190,13 +107,15 @@
   </form>
   <div class="status" id="status"></div>
 
-  <h2>Your links</h2>
-  <div id="linksList"></div>
+  <h2>
+    <span>Your links</span>
+    <button class="refresh" id="refreshBtn">Refresh</button>
+  </h2>
+  <div id="linksList"><div class="empty">Loading…</div></div>
 </div>
 
 <script>
 const API_URL = "API_GATEWAY_INVOKE_URL";
-const links = JSON.parse(localStorage.getItem("myLinks") || "[]");
 
 // theme
 const themeToggle = document.getElementById("themeToggle");
@@ -212,10 +131,9 @@ themeToggle.addEventListener("click", () => {
   applyTheme(next);
 });
 
-// links list
-function renderLinks() {
+function renderLinks(links) {
   const list = document.getElementById("linksList");
-  if (links.length === 0) {
+  if (!links || links.length === 0) {
     list.innerHTML = `<div class="empty">No links yet — shorten one above.</div>`;
     return;
   }
@@ -233,7 +151,20 @@ function renderLinks() {
   }).join("");
 }
 
-// form submit
+async function loadLinks() {
+  const list = document.getElementById("linksList");
+  try {
+    const res = await fetch(`${API_URL}/links`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Failed to load links");
+    renderLinks(data.links);
+  } catch (err) {
+    list.innerHTML = `<div class="empty">Couldn't load links: ${err.message}</div>`;
+  }
+}
+
+document.getElementById("refreshBtn").addEventListener("click", loadLinks);
+
 const form = document.getElementById("shortenForm");
 const statusEl = document.getElementById("status");
 const submitBtn = document.getElementById("submitBtn");
@@ -260,11 +191,8 @@ form.addEventListener("submit", async (e) => {
     const shortUrl = `${API_URL}/${data.shortcode}`;
     statusEl.innerHTML = `Created: <a href="${shortUrl}" target="_blank">${shortUrl}</a>`;
     statusEl.className = "status ok";
-
-    links.unshift({ shortcode: data.shortcode, longUrl: data.longUrl, clickCount: 0 });
-    localStorage.setItem("myLinks", JSON.stringify(links));
-    renderLinks();
     input.value = "";
+    loadLinks();
   } catch (err) {
     statusEl.textContent = "Error: " + err.message;
     statusEl.className = "status error";
@@ -273,7 +201,7 @@ form.addEventListener("submit", async (e) => {
   }
 });
 
-renderLinks();
+loadLinks();
 </script>
 </body>
 </html>
