@@ -13,7 +13,9 @@
     --text-muted: #6b6862;
     --accent: #2f6f5e;
     --accent-text: #ffffff;
+    --danger: #c0503f;
     --shadow: 0 1px 2px rgba(0,0,0,0.04);
+    --overlay: rgba(0,0,0,0.35);
   }
   html.dark {
     --bg: #17181a;
@@ -23,7 +25,9 @@
     --text-muted: #98958e;
     --accent: #5fb79b;
     --accent-text: #0f1210;
+    --danger: #e07a68;
     --shadow: 0 1px 2px rgba(0,0,0,0.3);
+    --overlay: rgba(0,0,0,0.6);
   }
   * { box-sizing: border-box; }
   body {
@@ -63,7 +67,7 @@
   button.submit:active { transform: scale(0.97); }
   button.submit:disabled { opacity: 0.5; cursor: default; }
   .status { font-size: 13px; min-height: 18px; margin-bottom: 8px; }
-  .status.error { color: #c0503f; }
+  .status.error { color: var(--danger); }
   .status.ok { color: var(--text-muted); }
   .status a { color: var(--accent); }
   h2 {
@@ -76,19 +80,71 @@
   }
   .refresh:hover { color: var(--accent); }
   .empty { font-size: 13px; color: var(--text-muted); padding: 20px 0; border-top: 1px solid var(--border); }
+
   .link-row {
     display: flex; align-items: center; justify-content: space-between; gap: 12px;
-    padding: 12px 0; border-top: 1px solid var(--border); animation: rise 0.3s ease both;
+    padding: 12px 0; border-top: 1px solid var(--border);
+    animation: rise 0.25s ease both;
+  }
+  .link-row.removing {
+    animation: fadeOut 0.2s ease forwards;
   }
   @keyframes rise { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeOut { to { opacity: 0; transform: translateX(8px); height: 0; padding: 0; margin: 0; } }
+
   .link-row .info { min-width: 0; }
   .link-row .short { font-size: 14px; color: var(--accent); text-decoration: none; font-weight: 500; }
   .link-row .short:hover { text-decoration: underline; }
   .link-row .orig {
     font-size: 12px; color: var(--text-muted); white-space: nowrap;
-    overflow: hidden; text-overflow: ellipsis; max-width: 320px;
+    overflow: hidden; text-overflow: ellipsis; max-width: 280px;
   }
-  .link-row .clicks { font-size: 12px; color: var(--text-muted); flex-shrink: 0; }
+  .link-row .right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+  .link-row .clicks { font-size: 12px; color: var(--text-muted); }
+  .delete-btn {
+    background: none; border: none; color: var(--text-muted); cursor: pointer;
+    font-size: 16px; line-height: 1; padding: 4px; border-radius: 6px;
+    transition: color 0.15s ease, background 0.15s ease;
+  }
+  .delete-btn:hover { color: var(--danger); background: var(--border); }
+
+  /* confirm overlay */
+  .overlay {
+    position: fixed; inset: 0; background: var(--overlay);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 100; opacity: 0; pointer-events: none;
+    transition: opacity 0.15s ease;
+  }
+  .overlay.show { opacity: 1; pointer-events: auto; }
+  .dialog {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 24px; width: 280px;
+    transform: scale(0.95); transition: transform 0.15s ease;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  }
+  .overlay.show .dialog { transform: scale(1); }
+  .dialog p { font-size: 14px; margin: 0 0 4px; }
+  .dialog .sub { font-size: 12px; color: var(--text-muted); margin-bottom: 20px; word-break: break-all; }
+  .dialog .actions { display: flex; gap: 8px; justify-content: flex-end; }
+  .dialog button {
+    padding: 8px 14px; font-size: 13px; border-radius: 8px; border: none; cursor: pointer;
+  }
+  .btn-cancel { background: var(--border); color: var(--text); }
+  .btn-danger { background: var(--danger); color: #fff; }
+
+  /* toast */
+  .toast {
+    position: fixed; bottom: 24px; left: 50%;
+    transform: translate(-50%, 16px);
+    background: var(--surface); color: var(--text); border: 1px solid var(--border);
+    padding: 10px 16px; border-radius: 10px; font-size: 13px;
+    box-shadow: var(--shadow);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    z-index: 200;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
   @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
 </style>
 </head>
@@ -114,8 +170,21 @@
   <div id="linksList"><div class="empty">Loading…</div></div>
 </div>
 
+<div class="overlay" id="confirmOverlay">
+  <div class="dialog">
+    <p>Delete this link?</p>
+    <div class="sub" id="confirmTarget"></div>
+    <div class="actions">
+      <button class="btn-cancel" id="confirmCancel">Cancel</button>
+      <button class="btn-danger" id="confirmDelete">Delete</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
 <script>
-const API_URL = "API_GATEWAY_INVOKE_URL";
+const API_URL = "API_GATEWAY_INVOKE_URL".replace(/\/$/, "");
 
 // theme
 const themeToggle = document.getElementById("themeToggle");
@@ -131,24 +200,91 @@ themeToggle.addEventListener("click", () => {
   applyTheme(next);
 });
 
+// toast
+let toastTimer;
+function showToast(message) {
+  const toast = document.getElementById("toast");
+  toast.textContent = message;
+  toast.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove("show"), 2200);
+}
+
+// confirm overlay
+const overlay = document.getElementById("confirmOverlay");
+const confirmTarget = document.getElementById("confirmTarget");
+let pendingShortcode = null;
+
+function openConfirm(shortcode, longUrl) {
+  pendingShortcode = shortcode;
+  confirmTarget.textContent = longUrl;
+  overlay.classList.add("show");
+}
+function closeConfirm() {
+  overlay.classList.remove("show");
+  pendingShortcode = null;
+}
+document.getElementById("confirmCancel").addEventListener("click", closeConfirm);
+overlay.addEventListener("click", (e) => { if (e.target === overlay) closeConfirm(); });
+
+document.getElementById("confirmDelete").addEventListener("click", async () => {
+  const shortcode = pendingShortcode;
+  if (!shortcode) return;
+  closeConfirm();
+
+  const row = document.querySelector(`[data-shortcode="${shortcode}"]`);
+
+  try {
+    const res = await fetch(`${API_URL}/${shortcode}`, { method: "DELETE" });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || "Failed to delete");
+
+    if (row) {
+      row.classList.add("removing");
+      row.addEventListener("animationend", () => {
+        row.remove();
+        if (!document.querySelector(".link-row")) {
+          document.getElementById("linksList").innerHTML =
+            `<div class="empty">No links yet - shorten one above.</div>`;
+        }
+      }, { once: true });
+    }
+    showToast("Link deleted");
+  } catch (err) {
+    showToast("Error: " + err.message);
+  }
+});
+
+// links list
 function renderLinks(links) {
   const list = document.getElementById("linksList");
   if (!links || links.length === 0) {
-    list.innerHTML = `<div class="empty">No links yet — shorten one above.</div>`;
+    list.innerHTML = `<div class="empty">No links yet - shorten one above.</div>`;
     return;
   }
   list.innerHTML = links.map(link => {
     const shortUrl = `${API_URL}/${link.shortcode}`;
     return `
-      <div class="link-row">
+      <div class="link-row" data-shortcode="${link.shortcode}">
         <div class="info">
           <a class="short" href="${shortUrl}" target="_blank">${shortUrl.replace(/^https?:\/\//, "")}</a><br>
           <span class="orig">${link.longUrl}</span>
         </div>
-        <div class="clicks">${link.clickCount ?? 0} clicks</div>
+        <div class="right">
+          <span class="clicks">${link.clickCount ?? 0} clicks</span>
+          <button class="delete-btn" data-shortcode="${link.shortcode}" data-longurl="${link.longUrl}" aria-label="Delete link">
+            <img src="button-icon.png" alt="delete-invoice" width="20" height="20">
+          </button>
+        </div>
       </div>
     `;
   }).join("");
+
+  list.querySelectorAll(".delete-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      openConfirm(btn.dataset.shortcode, btn.dataset.longurl);
+    });
+  });
 }
 
 async function loadLinks() {
@@ -165,6 +301,7 @@ async function loadLinks() {
 
 document.getElementById("refreshBtn").addEventListener("click", loadLinks);
 
+// form submit
 const form = document.getElementById("shortenForm");
 const statusEl = document.getElementById("status");
 const submitBtn = document.getElementById("submitBtn");
